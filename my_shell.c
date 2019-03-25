@@ -44,30 +44,70 @@ int num_commands_available(){
 */
 void shell_loop(void){
 	
+	// Number of characters read from stdin (command line) or EOF
+	size_t characters;
+
+	// The size of the input buffer
+	size_t bufsize = 100;
+
 	// String to store the whole command given 
 	char *line;
 	
 	// String array to store the splitted command input on stdin by white space-character	
-	char **args;	
-	
-	bool status;		
-	
+	char args[sizeof(line)][sizeof(line)];		
+
+	// The status of child process which is executing the current commmand
+	int child_status;	
+		
 	do{
 		
 		printf("# "); // Indicated as the start of new command line in my_shell
 		
 		// Get the command given from stdin
-		getline(stdin,line); 
-		
-		args = strtok(line," ");
-		
-		status = (bool)shell_execution(args);
+		if((characters = getline(&line,&bufsize,stdin)) == EOF)
+			break; 
+				
+		shell_tokens(line,args);
+
+		status = shell_execution(args);
 		
 		// Free up the memory of string array after the command execution
+		free(line);
 		free(args);
 		
 	}while(status)
 }
+
+char** shell_tokens(char *command_line){
+	
+	int bufsize = 64, position = 0; 	
+	char **splits = malloc(bufsize * sizeof(char*));
+	char **split_backup;
+	char *token;
+	const char separator = " ";
+	int i = 0;
+
+	if(!splits){	// Failure in creating an empty space in a memory region
+		perror("my_shell : ");
+		exit(EXIT_FAILURE);
+	}
+
+	// Get the first token 
+	token = strtok(command_line,separator);
+
+	while(token != NULL){
+		
+		strcpy(split[i++],token);
+		printf("%d. %s\n", i , token);
+		
+		if()		
+		
+		token = strtok(NULL,separator);
+	}
+
+	puts("End of string tokens copying");
+}
+
 
 /**
 	@brief  The method to exit this program / shell
