@@ -11,7 +11,7 @@
 #include<stdbool.h>
 #include<string.h>
 #include<unistd.h>
-#include<sys/wait.h>
+// #include<sys/wait.h>
 #include "features.h"
 #include "built-in.h"
 
@@ -33,6 +33,16 @@
 		- Print error and stay alive if the user make an error (eg. command not found)
 	> Submit at least 2 .c source files and 1 header file (.h source files)	
 */
+
+// ----- Function Declaration -----
+int num_commands_available();
+void shell_loop(void);
+char** shell_split(char *command_line);
+int shell_exit();
+int shell_lauch(char **argv);
+int shell_execution(char **args);
+// ----- End of Function Declaration -----
+
 
 /**
  * Commands available in the current shell
@@ -65,7 +75,7 @@ void shell_loop(void){
 	char *line;
 	
 	// String array to store the splitted command input on stdin by white space-character	
-	char args[sizeof(line)][sizeof(line)];		
+	char **args;
 
 	// The status of child process which is executing the current commmand
 	int child_status;	
@@ -78,9 +88,13 @@ void shell_loop(void){
 		if((characters = getline(&line,&bufsize,stdin)) == EOF)
 			break; 
 				
-		args = shell_split(line,args);
+		**args = shell_split(line);
 
-		child_status = shell_execution(args);
+		for(size_t i = 0; i < sizeof(args) ; i++){
+
+		}
+
+		// child_status = shell_execution(args);
 		
 		// Free up the memory of string array after the command execution
 		free(line);
@@ -90,7 +104,7 @@ void shell_loop(void){
 }
 
 /**
- *@brief 				Split a line of string into each whitespace-separated string
+ *@brief Split a line of string into each whitespace-separated string
  *@param command_line 	The line of string that got from the standard input
  *@return				Null-terminated string array
  */
@@ -168,14 +182,15 @@ int shell_lauch(char **argv){
 			args[0] - File name of file which has the content to be executed
 			argv 	- Argument list available to the new program provided with its file name 
 		*/
-		if(execvp(argv[0],argv) == -1)   // Case if the file not found  
+		if(execvp(argv[0], argv) == -1){   // Case if the file not found
 			perror("my_shell ");
-		
+		}
 		exit(0);
 		
 	}else if(pid < 0){ 	// Case if the creation of child process was unsuccessful
 		perror("my_shell ");
-	}else{			// Parent process - Wait fot the child-process to finish its execution
+
+	}else{				// Parent process - Wait fot the child-process to finish its execution
 		printf("Parent process waiting\n");
 		wait(&child_status);
 	}
@@ -197,9 +212,9 @@ int shell_execution(char **args){
 	for(size_t i = 0 ; i < num_commands_available(); i++){
 		
 		// If the given command is found in the commands available in this shell
-		if(strcmp(args[0],builtin_str[i]) == 0){
+		// if(strcmp(args[0],builtin_str[i]) == 0){
 			
-		}
+		// }
 	}
 	
 	return shell_lauch(args);

@@ -1,7 +1,7 @@
 #include "features.h"
 
 /**
-	@brief	Function to output the current time in format [date/month hour:minute]
+*	@brief	Function to output the current time in format [date/month hour:minute]
 */
 void current_time(){
 
@@ -12,8 +12,10 @@ void current_time(){
 }
 
 // Testing
+/*
 int main(){
 	
 	current_time();
 	return 0;
 }
+*/

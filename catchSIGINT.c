@@ -46,6 +46,7 @@ int catchSIGINT(void){
 }
 
 // Functionality testing method 
+/*
 int main(){
 	
 	catchSIGINT();
@@ -57,3 +58,4 @@ int main(){
    }
    return 0;
 }
+*/
