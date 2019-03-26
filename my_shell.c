@@ -1,5 +1,14 @@
+// ----- Preprocessor Constant [PROGRAM VERSION DISPLAY] -----
+#define PROGRAM_NAME "assign2-17202691"
+#define AUTHOR "Ee En Goh"
+#define STUDENT_NUMBER 17202691
+#define EMAIL "ee.goh@ucdconnect.ie"
+#define VERSION 1.0
+// ----- End of Preprocessor Constant -----
+
 #include<stdio.h>
 #include<stdlib.h>
+#include<stdbool.h>
 #include<string.h>
 #include<unistd.h>
 #include<sys/wait.h>
@@ -23,24 +32,26 @@
 		- Exit if your shell does something it should not - Terminate condition 2
 		- Print error and stay alive if the user make an error (eg. command not found)
 	> Submit at least 2 .c source files and 1 header file (.h source files)	
-
-	@author  : Ee En Goh (17202691)
-	@version : 1.0
 */
 
-// Commands available in the current shell
+/**
+ * Commands available in the current shell
+ */
 char *commands_available[] = {
 	
 	"cd", 	// change directory
 	"time", // display the date and local time with the format : [dd/mm hh:mm]# 
 };
 
+/**
+ * Number of commands availabe in this basic shell
+ */
 int num_commands_available(){
 	return sizeof(commands_available)/sizeof(char *);
 }
 
 /**
-	@brief Read command given from stdin and execute it repeatedly
+*	@brief Read command given from stdin and execute it repeatedly
 */
 void shell_loop(void){
 	
@@ -67,24 +78,30 @@ void shell_loop(void){
 		if((characters = getline(&line,&bufsize,stdin)) == EOF)
 			break; 
 				
-		shell_tokens(line,args);
+		args = shell_split(line,args);
 
-		status = shell_execution(args);
+		child_status = shell_execution(args);
 		
 		// Free up the memory of string array after the command execution
 		free(line);
 		free(args);
 		
-	}while(status)
+	}while(child_status);
 }
 
-char** shell_tokens(char *command_line){
+/**
+ *@brief 				Split a line of string into each whitespace-separated string
+ *@param command_line 	The line of string that got from the standard input
+ *@return				Null-terminated string array
+ */
+char** shell_split(char *command_line){
 	
-	int bufsize = 64, position = 0; 	
-	char **splits = malloc(bufsize * sizeof(char*));
-	char **split_backup;
-	char *token;
-	const char separator = " ";
+	int bufsize = 64; 									// The size of the string buffer
+	int position = 0;
+	char **splits = malloc(bufsize * sizeof(char*));	// The string array that will be returned
+	char *token;										// The temporary memory space to store the separated string
+	char **splits_backup ;								// The temporary memory space to store the uncompleted string array, when out of space in 'splits' variable
+	const char separator = " ";							// Whitespace character, which is the separation token
 	int i = 0;
 
 	if(!splits){	// Failure in creating an empty space in a memory region
@@ -95,32 +112,47 @@ char** shell_tokens(char *command_line){
 	// Get the first token 
 	token = strtok(command_line,separator);
 
+	// Read and do the word-separating process until no string remain
 	while(token != NULL){
 		
-		strcpy(split[i++],token);
+		strcpy(splits[i++],token);
 		printf("%d. %s\n", i , token);
 		
-		if()		
-		
-		token = strtok(NULL,separator);
+		// If the current memory space is not sufficient enough to store all the whitespace-separated string
+		if(position >= bufsize){
+
+			bufsize *= 2; 										// Set the size of the new buffer into 2 time bigger
+			splits_backup = splits;								// Store the successfully-split string into a temporary memory space
+			splits = realloc(splits, bufsize * sizeof(char*));	// Enlarge the size of the 2D array
+
+			if(!splits){	// Failure in creating a larger empty space in a memory region
+					free(splits_backup);
+					perror("my_shell : ");
+					exit(EXIT_FAILURE);
+			}
+		}
+		token = strtok(NULL,separator); // Get the next token from undone spliting of previous string
 	}
 
 	puts("End of string tokens copying");
+	splits[position] = '\0'; //TODO
+
+	return splits;
 }
 
 
 /**
-	@brief  The method to exit this program / shell
-	@return Always 0 in order to terminate the program execution 
+*	@brief  The method to exit this program / shell
+*	@return Always 0 in order to terminate the program execution
 */
 int shell_exit(){
 	return 0;
 }
 
 /**
-	@brief			Lauch a program and wait for it to terminate
-	@param	args	Null-terminated list of arguments from the program
-	@return 		1, in order to continue the execution
+*	@brief			Lauch a program and wait for it to terminate
+*	@param	args	Null-terminated list of arguments from the program
+*	@return 		1, in order to continue the execution
 */
 int shell_lauch(char **argv){
 
@@ -153,9 +185,9 @@ int shell_lauch(char **argv){
 }
 
 /**
-	@brief		Execute the program or shell built-in, according to the command given
-	@param args	Null terminated list of arguments
-	@return		1 if the shell should continue running, else 0 if it should terminate
+*	@brief		Execute the program or shell built-in, according to the command given
+*	@param args	Null terminated list of arguments
+*	@return		1 if the shell should continue running, else 0 if it should terminate
 */
 int shell_execution(char **args){
 	
