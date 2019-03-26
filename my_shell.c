@@ -34,10 +34,11 @@
 */
 
 // ----- Function Declaration -----
-int num_commands_available();
+int num_commands_available(void);
 void shell_loop(void);
 char** shell_split(char *command_line);
-int shell_exit();
+int shell_exit(void);
+char* read_line(void);
 int shell_lauch(char **argv);
 int shell_execution(char **args);
 // ----- End of Function Declaration -----
@@ -64,12 +65,6 @@ int num_commands_available(){
 */
 void shell_loop(void){
 	
-	// Number of characters read from stdin (command line) or EOF
-	size_t characters;
-
-	// The size of the input buffer
-	size_t bufsize = 100;
-
 	// String to store the whole command given 
 	char *line;
 	
@@ -82,15 +77,8 @@ void shell_loop(void){
 	do{
 		
 		printf("# "); // Indicated as the start of new command line in my_shell
-		
-		// Get the command given from stdin
-		// if((characters = getline(&line,&bufsize,stdin)) == EOF){
-		//	printf("Enter 1\n");		
-		//	break; 
-		// }
 
-		characters = getline(&line,&bufsize,stdin);
-		printf("Number of char read : %ld\n",characters);
+		line = read_line();
 
 		args = shell_split(line);
 
@@ -107,6 +95,40 @@ void shell_loop(void){
 	}while(child_status);
 }
 
+char* read_line(void){
+
+	int size = 100;
+	char *line = malloc(sizeof(char) * size);
+	size_t char_length = 0;
+	int line_read_successfully = 1;
+
+	if(!line){
+		perror("my_shell : ");
+		exit(EXIT_FAILURE);
+	}
+
+	do{
+		char_length = getline(&line,&size,stdin);
+		printf("Number of char read : %ld \n",char_length);
+
+		// It means the buffer has insufficient memory space to store the input
+		if(char_length >= size){
+
+			line_read_successfully = 0 ;
+			size *= 2;
+			line = realloc(line, size) ; // Enlarge the buffer
+
+			if(!line){
+				perror("my_shell : ");
+				exit(EXIT_FAILURE);
+			}
+		}
+
+	}while(!line_read_successfully);
+
+	return line;
+}
+
 /**
  *@brief Split a line of string into each whitespace-separated string
  *@param command_line 	The line of string that got from the standard input
@@ -120,7 +142,7 @@ char** shell_split(char *command_line){
 	char **splits = malloc(bufsize * sizeof(char*));	// The string array that will be returned
 	char *token;										// The temporary memory space to store the separated string
 	char **splits_backup ;								// The temporary memory space to store the uncompleted string array, when out of space in 'splits' variable
-	const char separator[2] = " ";							// Whitespace character, which is the separation token
+	const char separator[2] = " ";						// Whitespace character, which is the separation token
 	int i = 0;
 
 	if(!splits){	// Failure in creating an empty space in a memory region
@@ -171,7 +193,7 @@ int shell_exit(){
 
 /**
 *	@brief			Lauch a program and wait for it to terminate
-*	@param	args	Null-terminated list of arguments from the program
+*	@param	argv	Null-terminated list of arguments from the program
 *	@return 		1, in order to continue the execution
 */
 int shell_lauch(char **argv){
