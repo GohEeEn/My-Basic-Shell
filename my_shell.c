@@ -6,15 +6,14 @@
 #define VERSION 1.0
 // ----- End of Preprocessor Constant -----
 
-#include<stdio.h>
-#include<stdlib.h>
-#include<stdbool.h>
-#include<string.h>
-#include<unistd.h>
-// #include<sys/wait.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+#include <string.h>
+#include <unistd.h>
+#include <sys/wait.h>
 #include "features.h"
 #include "built-in.h"
-
 
 /*
 	Basic Shell :
@@ -78,20 +77,25 @@ void shell_loop(void){
 	char **args;
 
 	// The status of child process which is executing the current commmand
-	int child_status;	
+	int child_status = false;	
 		
 	do{
 		
 		printf("# "); // Indicated as the start of new command line in my_shell
 		
 		// Get the command given from stdin
-		if((characters = getline(&line,&bufsize,stdin)) == EOF)
-			break; 
-				
-		**args = shell_split(line);
+		// if((characters = getline(&line,&bufsize,stdin)) == EOF){
+		//	printf("Enter 1\n");		
+		//	break; 
+		// }
 
-		for(size_t i = 0; i < sizeof(args) ; i++){
+		characters = getline(&line,&bufsize,stdin);
+		printf("Number of char read : %ld\n",characters);
 
+		args = shell_split(line);
+
+		for(int i = 0; i < sizeof(args) ; i++){
+			printf("%d. %s \n", i, args[i]);
 		}
 
 		// child_status = shell_execution(args);
@@ -110,21 +114,23 @@ void shell_loop(void){
  */
 char** shell_split(char *command_line){
 	
+	printf("Enter 2 : Enter split function \n");		
 	int bufsize = 64; 									// The size of the string buffer
 	int position = 0;
 	char **splits = malloc(bufsize * sizeof(char*));	// The string array that will be returned
 	char *token;										// The temporary memory space to store the separated string
 	char **splits_backup ;								// The temporary memory space to store the uncompleted string array, when out of space in 'splits' variable
-	const char separator = " ";							// Whitespace character, which is the separation token
+	const char separator[2] = " ";							// Whitespace character, which is the separation token
 	int i = 0;
 
 	if(!splits){	// Failure in creating an empty space in a memory region
+		printf("Enter 3 : Unsuccessful \n");
 		perror("my_shell : ");
 		exit(EXIT_FAILURE);
 	}
 
 	// Get the first token 
-	token = strtok(command_line,separator);
+	token = strtok(command_line, separator);
 
 	// Read and do the word-separating process until no string remain
 	while(token != NULL){
@@ -145,7 +151,7 @@ char** shell_split(char *command_line){
 					exit(EXIT_FAILURE);
 			}
 		}
-		token = strtok(NULL,separator); // Get the next token from undone spliting of previous string
+		token = strtok(NULL, separator); // Get the next token from undone spliting of previous string
 	}
 
 	puts("End of string tokens copying");
