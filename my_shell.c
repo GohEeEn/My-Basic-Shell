@@ -97,7 +97,7 @@ void shell_loop(void){
 
 char* read_line(void){
 
-	int size = 100;
+	size_t size = 100;
 	char *line = malloc(sizeof(char) * size);
 	size_t char_length = 0;
 	int line_read_successfully = 1;
