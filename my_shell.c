@@ -95,6 +95,9 @@ void shell_loop(void){
 	}while(child_status);
 }
 
+/**
+ * Method to read a line of command input from stdin
+ */
 char* read_line(void){
 
 	size_t size = 100;
@@ -122,11 +125,13 @@ char* read_line(void){
 				perror("my_shell : ");
 				exit(EXIT_FAILURE);
 			}
+
+		}else{
+			line_read_successfully = 1;
+			return line;
 		}
 
 	}while(!line_read_successfully);
-
-	return line;
 }
 
 /**
