@@ -11,7 +11,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include <unistd.h>
-#include <sys/wait.h>
+// #include <sys/wait.h>
 #include "features.h"
 #include "built-in.h"
 
@@ -51,6 +51,13 @@ char *commands_available[] = {
 	
 	"cd", 	// change directory
 	"time", // display the date and local time with the format : [dd/mm hh:mm]# 
+	"exit"	// exit this shell
+};
+
+int (*command_function[])(char **) = {
+	&change_dir,
+	&current_time,	// Feature 2
+	&shell_exit
 };
 
 /**
@@ -58,42 +65,6 @@ char *commands_available[] = {
  */
 int num_commands_available(){
 	return sizeof(commands_available)/sizeof(char *);
-}
-
-/**
-*	@brief Read command given from stdin and execute it repeatedly
-*/
-void shell_loop(void){
-	
-	// String to store the whole command given 
-	char *line;
-	
-	// String array to store the splitted command input on stdin by white space-character	
-	char **args;
-
-	// The status of child process which is executing the current commmand
-	int child_status = false;	
-		
-	do{
-		
-		printf("# "); // Indicated as the start of new command line in my_shell
-
-		line = read_line();		// Read Command Line : SUCCESS
-		args = shell_split(line);	// Split String : SUCCESS
-
-/*	
-		printf("size of args : %ld\n",sizeof(args)/sizeof(args[0]));
-		for(int i = 0; i < sizeof(args)/sizeof(args[0]) ; i++){
-			printf("%d. %s \n", i, args[i]);
-		}
-*/
-		child_status = shell_execution(args);
-		
-		// Free up the memory of string array after the command execution
-		free(line);
-		free(args);
-		
-	}while(child_status);
 }
 
 /**
@@ -112,6 +83,8 @@ char* read_line(void){
 	}
 
 	do{
+		catchSIGINT(); // Feature 3 : Catch SIGINT
+
 		char_length = getline(&line,&size,stdin);
 		printf("Number of char read : %ld \n",char_length);
 
@@ -137,17 +110,18 @@ char* read_line(void){
 	return NULL;
 }
 
+/**
+ * @brief Function to calculate the character length of the given, including any whitespace character (eg. '\n')
+ */
 int string_length (char *string){
-
 	int length ;	
-	// printf("String %s given\n",string);
-	
 	for(length = 0; string[length] != '\0'; ++length);
-	
-	// printf("String %s has length %d\n",string,length);
 	return length;
 }
 
+/**
+ * @brief Function to remove the new line character from the string fetched from stdin
+ */
 void remove_new_line(char *string){
 	
 	int command_length = string_length(string);
@@ -220,7 +194,6 @@ char** shell_split(char *command_line){
 	return splits;
 }
 
-
 /**
 *	@brief  The method to exit this program / shell
 *	@return Always 0 in order to terminate the program execution
@@ -233,6 +206,7 @@ int shell_exit(){
 *	@brief			Lauch a program and wait for it to terminate
 *	@param	argv	Null-terminated list of arguments from the program
 *	@return 		1, in order to continue the execution
+*	TODO Feature 1
 */
 int shell_lauch(char **argv){
 
@@ -278,12 +252,48 @@ int shell_execution(char **args){
 	for(size_t i = 0 ; i < num_commands_available(); i++){
 		
 		// If the given command is found in the commands available in this shell
-		// if(strcmp(args[0],builtin_str[i]) == 0){
-			
-		// }
+		if(strcmp(args[0],commands_available[i]) == 0){
+			return (*command_function)(args);
+		}
 	}
 	
 	return shell_lauch(args);
+}
+
+/**
+*	@brief Read command given from stdin and execute it repeatedly
+*/
+void shell_loop(void){
+
+	// String to store the whole command given
+	char *line;
+
+	// String array to store the splitted command input on stdin by white space-character
+	char **args;
+
+	// The status of child process which is executing the current commmand
+	int child_status = false;
+
+	do{
+
+		printf("# "); // Indicated as the start of new command line in my_shell
+
+		line = read_line();		// Read Command Line : SUCCESS
+		args = shell_split(line);	// Split String : SUCCESS
+
+/*
+		printf("size of args : %ld\n",sizeof(args)/sizeof(args[0]));
+		for(int i = 0; i < sizeof(args)/sizeof(args[0]) ; i++){
+			printf("%d. %s \n", i, args[i]);
+		}
+*/
+		child_status = shell_execution(args);
+
+		// Free up the memory of string array after the command execution
+		free(line);
+		free(args);
+
+	}while(child_status);
 }
 
 int main(int argc, char **argv){

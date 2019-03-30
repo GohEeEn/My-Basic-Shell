@@ -23,7 +23,7 @@ int catchSIGINT(void){
 	
 	/*
 		C function to handle signal
-		[4] SIGINT - Signal Interrupt [Ctrl + C]
+		[2] SIGINT - Signal Interrupt [Ctrl + C]
 		- Only handle the signal once per this function called
 	*/
     if (signal(SIGINT, signalHandler) == SIG_ERR) {
