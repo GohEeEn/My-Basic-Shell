@@ -78,15 +78,16 @@ void shell_loop(void){
 		
 		printf("# "); // Indicated as the start of new command line in my_shell
 
-		line = read_line();
+		line = read_line();		// Read Command Line : SUCCESS
+		args = shell_split(line);	// Split String : SUCCESS
 
-		args = shell_split(line);
-
-		for(int i = 0; i < sizeof(args) ; i++){
+/*	
+		printf("size of args : %ld\n",sizeof(args)/sizeof(args[0]));
+		for(int i = 0; i < sizeof(args)/sizeof(args[0]) ; i++){
 			printf("%d. %s \n", i, args[i]);
 		}
-
-		// child_status = shell_execution(args);
+*/
+		child_status = shell_execution(args);
 		
 		// Free up the memory of string array after the command execution
 		free(line);
@@ -167,10 +168,11 @@ void remove_new_line(char *string){
 char** shell_split(char *command_line){
 	
 	printf("Enter 2  : Enter split function \n");		
-	int bufsize = 1024; 					// The size of the string buffer
+	int bufsize = 64; 					// The size of the string buffer
 	int position = 0;
 	char **splits = malloc(bufsize * sizeof(char*));	// The string array that will be returned
 	char *token;			// The temporary memory space to store the separated string
+//	char *string;
 	char **splits_backup ;		// The temporary memory space to store the uncompleted string array, when out of space in 'splits' variable
 
 	const char separator[2] = " ";	// Whitespace character, which is the separation token
@@ -183,11 +185,6 @@ char** shell_split(char *command_line){
 	}
 	
 	// Get the first token 
-/*
-	printf("command_line : %s",command_line);
-	printf("size of stdin : %d\n",command_length);
-	printf("command_line[command_length-1] : %c\n",command_line[command_length-1]);
-*/
 	remove_new_line(command_line);
 	token = strtok(command_line, " \n");
 
@@ -195,9 +192,10 @@ char** shell_split(char *command_line){
 	while(token != NULL){
 		
 		printf("Enter 2a : Enter split function, %s\n",token);									
-		strcpy(splits[i],token); // DEBUG
-
-		printf("Enter 2b : Enter split function\n");									
+// 		string = strcpy(splits[i++],token); // DEBUG
+		splits[position++] = token;
+	
+		printf("Enter 2b : Copying done ,%s \n",token);									
 		printf("%d. %s\n", i , token);
 		
 		// If the current memory space is not sufficient enough to store all the whitespace-separated string
