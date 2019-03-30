@@ -160,6 +160,10 @@ char** shell_split(char *command_line){
 	}
 	
 	// Get the first token 
+	if(command_line[sizeof(command_line)/sizeof(char) - 1] == '\n'){
+		puts("Remove new line character");
+		command_line[sizeof(command_line)/sizeof(char) - 1] = '\0';
+	}
 	token = strtok(command_line, separator);
 
 	// Read and do the word-separating process until no string remain
