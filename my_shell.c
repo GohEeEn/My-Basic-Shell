@@ -132,6 +132,8 @@ char* read_line(void){
 		}
 
 	}while(!line_read_successfully);
+
+	return NULL;
 }
 
 /**
@@ -141,13 +143,14 @@ char* read_line(void){
  */
 char** shell_split(char *command_line){
 	
-	printf("Enter 2 : Enter split function \n");		
-	int bufsize = 64; 									// The size of the string buffer
+	printf("Enter 2  : Enter split function \n");		
+	int bufsize = 1024; 					// The size of the string buffer
 	int position = 0;
 	char **splits = malloc(bufsize * sizeof(char*));	// The string array that will be returned
-	char *token;										// The temporary memory space to store the separated string
-	char **splits_backup ;								// The temporary memory space to store the uncompleted string array, when out of space in 'splits' variable
-	const char separator[2] = " ";						// Whitespace character, which is the separation token
+	char *token;			// The temporary memory space to store the separated string
+	char **splits_backup ;		// The temporary memory space to store the uncompleted string array, when out of space in 'splits' variable
+
+	const char separator[2] = " ";	// Whitespace character, which is the separation token
 	int i = 0;
 
 	if(!splits){	// Failure in creating an empty space in a memory region
@@ -155,21 +158,24 @@ char** shell_split(char *command_line){
 		perror("my_shell : ");
 		exit(EXIT_FAILURE);
 	}
-
+	
 	// Get the first token 
 	token = strtok(command_line, separator);
 
 	// Read and do the word-separating process until no string remain
 	while(token != NULL){
 		
-		strcpy(splits[i++],token);
+		printf("Enter 2a : Enter split function, %s\n",token);									
+		strcpy(splits[i],token); // DEBUG
+
+		printf("Enter 2b : Enter split function\n");									
 		printf("%d. %s\n", i , token);
 		
 		// If the current memory space is not sufficient enough to store all the whitespace-separated string
 		if(position >= bufsize){
 
-			bufsize *= 2; 										// Set the size of the new buffer into 2 time bigger
-			splits_backup = splits;								// Store the successfully-split string into a temporary memory space
+			bufsize *= 2; 						// Set the size of the new buffer into 2 time bigger
+			splits_backup = splits;					// Store the successfully-split string into a temporary memory space
 			splits = realloc(splits, bufsize * sizeof(char*));	// Enlarge the size of the 2D array
 
 			if(!splits){	// Failure in creating a larger empty space in a memory region
