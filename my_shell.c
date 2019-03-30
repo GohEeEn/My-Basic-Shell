@@ -136,6 +136,29 @@ char* read_line(void){
 	return NULL;
 }
 
+int string_length (char *string){
+
+	int length ;	
+	// printf("String %s given\n",string);
+	
+	for(length = 0; string[length] != '\0'; ++length);
+	
+	// printf("String %s has length %d\n",string,length);
+	return length;
+}
+
+void remove_new_line(char *string){
+	
+	int command_length = string_length(string);
+ 
+	if(string[command_length - 1] == '\n'){
+		string[command_length - 1] = '\0';
+		printf("After remove new line character : %s\n", string);
+	}else{
+		puts("No new line character to be removed");
+	}	
+}
+
 /**
  *@brief Split a line of string into each whitespace-separated string
  *@param command_line 	The line of string that got from the standard input
@@ -160,11 +183,13 @@ char** shell_split(char *command_line){
 	}
 	
 	// Get the first token 
-	if(command_line[sizeof(command_line)/sizeof(char) - 1] == '\n'){
-		puts("Remove new line character");
-		command_line[sizeof(command_line)/sizeof(char) - 1] = '\0';
-	}
-	token = strtok(command_line, separator);
+/*
+	printf("command_line : %s",command_line);
+	printf("size of stdin : %d\n",command_length);
+	printf("command_line[command_length-1] : %c\n",command_line[command_length-1]);
+*/
+	remove_new_line(command_line);
+	token = strtok(command_line, " \n");
 
 	// Read and do the word-separating process until no string remain
 	while(token != NULL){
