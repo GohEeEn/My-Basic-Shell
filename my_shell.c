@@ -36,11 +36,12 @@
 // ----- Function Declaration -----
 int num_commands_available(void);
 void shell_loop(void);
-char** shell_split(char *command_line);
+char** shell_split(char *command_line, int *num_strings);
 int shell_exit(char **argv);
 char* read_line(void);
 int shell_lauch(char **argv);
 int shell_execution(char **args);
+int num_strings(char **argv);
 // ----- End of Function Declaration -----
 
 
@@ -138,7 +139,7 @@ void remove_new_line(char *string){
  *@param command_line 	The line of string that got from the standard input
  *@return				Null-terminated string array
  */
-char** shell_split(char *command_line){
+char** shell_split(char *command_line, int *num_strings){
 	
 	int bufsize = 64; 					// The size of the string buffer
 	int position = 0;
@@ -183,7 +184,9 @@ char** shell_split(char *command_line){
 	}
 
 	splits[position] = '\0'; //TODO
-
+// 	printf("Position : %d\n",position);
+	*num_strings = position;	
+	
 	return splits;
 }
 
@@ -247,11 +250,11 @@ int shell_execution(char **args){
 		// If the given command is found in the commands available in this shell
 		if(strcmp(args[0],commands_available[i]) == 0){
 			// printf("%s selected\n",commands_available[i]); // Function selected DEBUG
-			return (*command_function[i])(args);
+			return (*command_function[i])(args); // Call self-defined function
 		}
 	}
 	
-	return shell_lauch(args);
+	return shell_lauch(args); // Else call built-in command / program
 }
 
 /**
@@ -265,6 +268,10 @@ void shell_loop(void){
 	// String array to store the splitted command input on stdin by white space-character
 	char **args;
 
+	int num_args, transfer_bool = 0;
+	char *file_name;
+		
+
 	// The status of child process which is executing the current commmand
 	int child_status = false;
 
@@ -272,15 +279,21 @@ void shell_loop(void){
 
 		printf("# "); // Indicated as the start of new command line in my_shell
 
-		line = read_line();		// Read Command Line : SUCCESS
-		args = shell_split(line);	// Split String : SUCCESS
+		line = read_line();		// Read Command Line 	: SUCCESS
+		args = shell_split(line,&num_args);	// Split String 	: SUCCESS
+		// printf("size of args : %d\n",num_args);
 
-/*
-		printf("size of args : %ld\n",sizeof(args)/sizeof(args[0]));
-		for(int i = 0; i < sizeof(args)/sizeof(args[0]) ; i++){
-			printf("%d. %s \n", i, args[i]);
+
+		for(int i = 0; i < num_args ; i++){
+
+			if(transfer_bool){
+				file_name = args[i]; // File Name expected for remaining args
+				printf("Given file name : %s\n",file_name);		
+			
+			}
+			if(args[i]==">")
+				transfer_bool = 1;			
 		}
-*/		printf("Number of strings in array : %d\n",num_strings(args));
 
 		child_status = shell_execution(args);
 
@@ -293,7 +306,7 @@ void shell_loop(void){
 
 /**
  * @brief Function to calculate the total number of strings in the array
- */
+ 
 int num_strings(char **argv){
 
 	int string_count = 0;
@@ -313,7 +326,9 @@ int num_strings(char **argv){
 
 	return string_count;
 }
+*/
 
+/*
 int checkPipe(char **argv){
 
 	for(size_t i = 0; i <  ;i++){
@@ -321,7 +336,7 @@ int checkPipe(char **argv){
 	}
 	return 0;
 }
-
+*/
 int main(int argc, char **argv){
 
 	// A. Intialize : Read and execute its config files, if any
