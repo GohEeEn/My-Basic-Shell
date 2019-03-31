@@ -1,5 +1,9 @@
 #include "built-in.h"
 
+/**
+* @brief Change the current location of shell to given directory path
+* TODO Feature 4
+*/
 int change_dir(char **args){
 
 	char path[100]; // char array to store the name of directory path	

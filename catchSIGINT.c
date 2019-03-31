@@ -7,7 +7,8 @@
 static void signalHandler(int signalNum) {
 	
 	if(signalNum == SIGINT){
-		printf("Signal %d - Interactive attention signal caught.\n",signalNum);
+		// printf("Signal %d - Interactive attention signal caught.\n",signalNum); DEBUG
+		printf("\n# "); 	// Continue as a symbol to accept the next command
 		fflush(stdout);
 	}else{
 		printf("Maybe some other signal you have incidentally caught...");

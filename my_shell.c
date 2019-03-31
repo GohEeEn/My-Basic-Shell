@@ -11,7 +11,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include <unistd.h>
-// #include <sys/wait.h>
+#include <sys/wait.h>
 #include "features.h"
 #include "built-in.h"
 
@@ -37,7 +37,7 @@
 int num_commands_available(void);
 void shell_loop(void);
 char** shell_split(char *command_line);
-int shell_exit(void);
+int shell_exit(char **argv);
 char* read_line(void);
 int shell_lauch(char **argv);
 int shell_execution(char **args);
@@ -83,10 +83,9 @@ char* read_line(void){
 	}
 
 	do{
-		catchSIGINT(); // Feature 3 : Catch SIGINT
+		catchSIGINT();  // Feature 3 : enable catch SIGINT
 
-		char_length = getline(&line,&size,stdin);
-		printf("Number of char read : %ld \n",char_length);
+		char_length = getline(&line,&size,stdin); // Read the stdin in command line
 
 		// It means the buffer has insufficient memory space to store the input
 		if(char_length >= size){
@@ -128,9 +127,9 @@ void remove_new_line(char *string){
  
 	if(string[command_length - 1] == '\n'){
 		string[command_length - 1] = '\0';
-		printf("After remove new line character : %s\n", string);
+	//	printf("After remove new line character : %s\n", string); DEBUG
 	}else{
-		puts("No new line character to be removed");
+		puts("No new line character to be removed"); // Expected won't happened
 	}	
 }
 
@@ -141,7 +140,6 @@ void remove_new_line(char *string){
  */
 char** shell_split(char *command_line){
 	
-	printf("Enter 2  : Enter split function \n");		
 	int bufsize = 64; 					// The size of the string buffer
 	int position = 0;
 	char **splits = malloc(bufsize * sizeof(char*));	// The string array that will be returned
@@ -150,7 +148,7 @@ char** shell_split(char *command_line){
 	char **splits_backup ;		// The temporary memory space to store the uncompleted string array, when out of space in 'splits' variable
 
 	const char separator[2] = " ";	// Whitespace character, which is the separation token
-	int i = 0;
+// 	int i = 0;
 
 	if(!splits){	// Failure in creating an empty space in a memory region
 		printf("Enter 3 : Unsuccessful \n");
@@ -164,14 +162,10 @@ char** shell_split(char *command_line){
 
 	// Read and do the word-separating process until no string remain
 	while(token != NULL){
-		
-		printf("Enter 2a : Enter split function, %s\n",token);									
-// 		string = strcpy(splits[i++],token); // DEBUG
+				
+// 		string = strcpy(splits[i++],token); // BUG, further implementation needed to gonna use it
 		splits[position++] = token;
-	
-		printf("Enter 2b : Copying done ,%s \n",token);									
-		printf("%d. %s\n", i , token);
-		
+			
 		// If the current memory space is not sufficient enough to store all the whitespace-separated string
 		if(position >= bufsize){
 
@@ -188,7 +182,6 @@ char** shell_split(char *command_line){
 		token = strtok(NULL, separator); // Get the next token from undone spliting of previous string
 	}
 
-	puts("End of string tokens copying");
 	splits[position] = '\0'; //TODO
 
 	return splits;
@@ -198,7 +191,7 @@ char** shell_split(char *command_line){
 *	@brief  The method to exit this program / shell
 *	@return Always 0 in order to terminate the program execution
 */
-int shell_exit(){
+int shell_exit(char** argv){
 	return 0;
 }
 
@@ -253,7 +246,8 @@ int shell_execution(char **args){
 		
 		// If the given command is found in the commands available in this shell
 		if(strcmp(args[0],commands_available[i]) == 0){
-			return (*command_function)(args);
+			printf("%s selected\n",commands_available[i]); // Function selected
+			return (*command_function[i])(args);
 		}
 	}
 	
