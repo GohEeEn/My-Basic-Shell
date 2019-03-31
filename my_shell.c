@@ -246,7 +246,7 @@ int shell_execution(char **args){
 		
 		// If the given command is found in the commands available in this shell
 		if(strcmp(args[0],commands_available[i]) == 0){
-			printf("%s selected\n",commands_available[i]); // Function selected
+			// printf("%s selected\n",commands_available[i]); // Function selected DEBUG
 			return (*command_function[i])(args);
 		}
 	}
@@ -280,7 +280,8 @@ void shell_loop(void){
 		for(int i = 0; i < sizeof(args)/sizeof(args[0]) ; i++){
 			printf("%d. %s \n", i, args[i]);
 		}
-*/
+*/		printf("Number of strings in array : %d\n",num_strings(args));
+
 		child_status = shell_execution(args);
 
 		// Free up the memory of string array after the command execution
@@ -288,6 +289,37 @@ void shell_loop(void){
 		free(args);
 
 	}while(child_status);
+}
+
+/**
+ * @brief Function to calculate the total number of strings in the array
+ */
+int num_strings(char **argv){
+
+	int string_count = 0;
+
+	printf("Size of array_strings : %ld\n",sizeof(argv)/sizeof(char*)); // Works
+
+	for(size_t i = 0 ; i < sizeof(argv)/sizeof(char*) ; i++){
+
+		size_t j = 0;
+		for(j = 0 ; argv[i][j] != '\0' ; j++)
+		if(argv[i][j] == '\0')
+			string_count++;
+		printf("%ld string : %s , reading end\n",i,argv[i]);
+	}
+
+	printf("Number of string in this string array : %d\n",string_count);
+
+	return string_count;
+}
+
+int checkPipe(char **argv){
+
+	for(size_t i = 0; i <  ;i++){
+
+	}
+	return 0;
 }
 
 int main(int argc, char **argv){
