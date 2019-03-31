@@ -241,16 +241,18 @@ int shell_lauch(char **argv){
 *	@return		1 if the shell should continue running, else 0 if it should terminate
 */
 int shell_execution(char **args){
-	
-	if(args[0] == NULL) // Empty command was given in terminal
+
+	// Case 1 : Empty command was given in terminal
+	if(args[0] == NULL) 
 		return 1;
 
+	// 
 	for(size_t i = 0 ; i < num_commands_available(); i++){
 		
 		// If the given command is found in the commands available in this shell
 		if(strcmp(args[0],commands_available[i]) == 0){
-			// printf("%s selected\n",commands_available[i]); // Function selected DEBUG
-			return (*command_function[i])(args); // Call self-defined function
+			// printf("%s selected\n",commands_available[i]); 	// Function selected DEBUG
+			return (*command_function[i])(args); 			// Call self-defined function
 		}
 	}
 	
@@ -268,7 +270,7 @@ void shell_loop(void){
 	// String array to store the splitted command input on stdin by white space-character
 	char **args;
 
-	int num_args, transfer_bool = 0;
+	int num_args, redirection_bool = 0;
 	char *file_name;
 		
 
@@ -281,21 +283,34 @@ void shell_loop(void){
 
 		line = read_line();		// Read Command Line 	: SUCCESS
 		args = shell_split(line,&num_args);	// Split String 	: SUCCESS
-		// printf("size of args : %d\n",num_args);
-
-
+		// printf("size of args : %d\n",num_args)
+		
+		// Checking if a redirection command given
 		for(int i = 0; i < num_args ; i++){
 
-			if(transfer_bool){
-				file_name = args[i]; // File Name expected for remaining args
+			if(redirection_bool){ 		// Next string argument after redirection symbol found
+				file_name = args[i]; 	// File Name expected for remaining args
 				printf("Given file name : %s\n",file_name);		
-			
+				break;
 			}
-			if(args[i]==">")
-				transfer_bool = 1;			
+			if(strcmp(args[i],">") == 0)
+				redirection_bool = 1;
+			else
+				redirection_bool = 0;			
 		}
-
+	
 		child_status = shell_execution(args);
+
+		if(child_status && redirection_bool){
+			
+			FILE *fileptr;
+			
+			if((fileptr = fopen(file_name,"w"))==0){ 
+				fprintf(stderr,"Given file %s can't be open or not found\n",file_name);
+			}else{
+
+			}
+		}
 
 		// Free up the memory of string array after the command execution
 		free(line);
@@ -304,39 +319,6 @@ void shell_loop(void){
 	}while(child_status);
 }
 
-/**
- * @brief Function to calculate the total number of strings in the array
- 
-int num_strings(char **argv){
-
-	int string_count = 0;
-
-	printf("Size of array_strings : %ld\n",sizeof(argv)/sizeof(char*)); // Works
-
-	for(size_t i = 0 ; i < sizeof(argv)/sizeof(char*) ; i++){
-
-		size_t j = 0;
-		for(j = 0 ; argv[i][j] != '\0' ; j++)
-		if(argv[i][j] == '\0')
-			string_count++;
-		printf("%ld string : %s , reading end\n",i,argv[i]);
-	}
-
-	printf("Number of string in this string array : %d\n",string_count);
-
-	return string_count;
-}
-*/
-
-/*
-int checkPipe(char **argv){
-
-	for(size_t i = 0; i <  ;i++){
-
-	}
-	return 0;
-}
-*/
 int main(int argc, char **argv){
 
 	// A. Intialize : Read and execute its config files, if any
