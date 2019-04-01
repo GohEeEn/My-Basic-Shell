@@ -9,7 +9,7 @@ static void signalHandler(int signalNum) {
 	
 		// Continue as a symbol to accept the next command
 		char **args = NULL;
-		puts("");
+		puts("\n");
 		current_time(args);
 		printf("# ");
 

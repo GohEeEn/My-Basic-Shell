@@ -43,8 +43,9 @@ int redirect_stdout(int *num_args, char **args){
 		
 		if(redirection_bool){ 		// Next string argument after redirection symbol found
 			file_name = args[i]; 	// File Name expected for remaining args
-			printf("Given file name : %s\n",file_name);
 			args[i-1] = NULL;
+			args[i] = NULL;
+
 			break;
 		}
 
@@ -125,7 +126,7 @@ int shell_lauch(char **argv, int file_descriptor){
 
 		exit(EXIT_SUCCESS);
 	
-	}else if(pid < 0){ 	// Case if the creation of child process was unsuccessfu
+	}else if(pid < 0){ 		// Case if the creation of child process was unsuccessfu
 		fprintf(stderr,"my_shell : Child process creation not successful\n");
 
 	}else{				// Parent process - Wait fot the child-process to finish its execution
