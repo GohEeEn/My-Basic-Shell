@@ -16,7 +16,6 @@
 #include <sys/wait.h>
 #include <fcntl.h>
 #include "features.h"
-#include "built-in.h"
 
 /*
 	Basic Shell :
@@ -44,7 +43,6 @@ int shell_exit(char **argv);
 char* read_line(void);
 int shell_lauch(char **argv);
 int shell_execution(char **args);
-int num_strings(char **argv);
 // ----- End of Function Declaration -----
 
 
@@ -187,7 +185,6 @@ char** shell_split(char *command_line, int *num_strings){
 	}
 
 	splits[position] = '\0'; //TODO
-// 	printf("Position : %d\n",position);
 	*num_strings = position;	
 	
 	return splits;
@@ -271,7 +268,7 @@ void shell_loop(void){
 	// String array to store the splitted command input on stdin by white space-character
 	char **args;
 
-	int num_args, redirection_bool = 0;
+	int num_args = 0;
 	char *file_name;
 		
 
@@ -284,44 +281,7 @@ void shell_loop(void){
 
 		line = read_line();			// Read Command Line 	: SUCCESS
 		args = shell_split(line,&num_args);	// Split String 	: SUCCESS
-		
-		// Checking if a redirection command given
-		for(int i = 0; i < num_args ; i++){
-
-			if(redirection_bool){ 		// Next string argument after redirection symbol found
-				file_name = args[i]; 	// File Name expected for remaining args
-				printf("Given file name : %s\n",file_name);
-				args[i-1] = NULL;	
-				break;
-			}
-			if(strcmp(args[i],">") != 0){
-				redirection_bool = 0;
-			}else{
-				redirection_bool = 1;			
-			}
-		}
-
-		int file_desc;
-
-		if(redirection_bool){
-			
-			file_desc = open(file_name, O_WRONLY | O_CREAT | O_TRUNC); // Return a new file descriptor
-			
-			if(file_desc == -1) { // open() returns -1 upon failure
-				// fprintf(stderr,"Given file %s can't be open or not found\n",file_name);
-				perror("my_shell : "); // Print program detail - success or fail
-			}else{
-				printf("File opened or created\n");
-				chmod(file_name,)
-				dup2(file_desc,1);
-			}
-		}
-		child_status = shell_execution(args);
-		if(redirection_bool){
-			close(file_desc);
-			printf("File closed\n");
-			redirection_bool = 0;
-		}
+		redirect_stdout(&num_args,args);
 
 		// Free up the memory of string array after the command execution
 		free(line);
