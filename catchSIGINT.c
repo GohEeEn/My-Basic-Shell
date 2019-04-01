@@ -1,8 +1,7 @@
 #include "features.h"
 
 /**
-	User-defined signal message generator
-	Since it is SIGINT -> an int value 2 is expected
+	@brief User-defined signal message generator, and since it is SIGINT -> an int value 2 is expected
 */
 static void signalHandler(int signalNum) {
 	

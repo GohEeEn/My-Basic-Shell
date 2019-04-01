@@ -31,9 +31,11 @@ int shell_exit(char** argv){
 /**
  * @brief Function to do redirection command searching and commands execution
  */
-int redirect_stdout(int *num_args, char **args, int *file_descriptor){
+int redirect_stdout(int *num_args, char **args){
 
+	/** String storage that used to store the given filename */
 	char *file_name;
+
 	int redirection_bool = 0, file_desc, child_status;
 
 	// Checking if a redirection command given
@@ -53,6 +55,7 @@ int redirect_stdout(int *num_args, char **args, int *file_descriptor){
 		}
 	}
 
+	// Case if a redirection command given
 	if(redirection_bool){
 
 		file_desc = open(file_name, O_WRONLY | O_CREAT | O_TRUNC, 0666); // Return a new file descriptor
@@ -62,12 +65,8 @@ int redirect_stdout(int *num_args, char **args, int *file_descriptor){
 		}
 	}
 			
-	child_status = shell_execution(args, file_desc);
-	
-	if(redirection_bool){
-		close(file_desc);
-		redirection_bool = 0;
-	}		
+	child_status = shell_execution(args, file_desc); // Execute the given command / program
+	redirection_bool = 0;
 
  	return child_status;
 }
@@ -83,41 +82,41 @@ int shell_execution(char **args, int file_desc){
 	if(args[0] == NULL) 
 		return 1;
 
-	// 
+	// Case 2 : Self-define function called [ie. "cd" & "exit"]
 	for(size_t i = 0 ; i < num_commands_available(); i++){
 		
 		// If the given command is found in the commands available in this shell
 		if(strcmp(args[0],commands_available[i]) == 0){
-			// printf("%s selected\n",commands_available[i]); 	// Function selected DEBUG
-			return (*command_function[i])(args); 			// Call self-defined function
+			return (*command_function[i])(args);
 		}
 	}
 	
-	return shell_lauch(args,file_desc); // Else call built-in command / program
+	// Case 3 : else call built-in command / program
+	return shell_lauch(args,file_desc);
 }
 
 /**
 *	@brief			Lauch a program and wait for it to terminate
 *	@param	argv	Null-terminated list of arguments from the program
 *	@return 		1, in order to continue the execution
-*	TODO Feature 1
+*	Feature 1
 */
 int shell_lauch(char **argv, int file_descriptor){
 
 	pid_t pid;
 	int child_status;
 
-	pid = fork(); // create a child process
+	pid = fork(); 		// create a child process
 
 	if(pid == 0){ 		// Child process - Execute the given command 
 		
+		dup2(file_descriptor,1);
+
 		/*
 			Execute the command in the given program file name
 			args[0] - File name of file which has the content to be executed
 			argv 	- Argument list available to the new program provided with its file name 
 		*/
-		dup2(file_descriptor,1);
-
 		if(execvp(argv[0], argv) == -1){   // Case if the file not found
 			fprintf(stderr, "my_shell : Command / program given not found\n");
 		}
@@ -126,8 +125,7 @@ int shell_lauch(char **argv, int file_descriptor){
 
 		exit(EXIT_SUCCESS);
 	
-	}else if(pid < 0){ 	// Case if the creation of child process was unsuccessful
-
+	}else if(pid < 0){ 	// Case if the creation of child process was unsuccessfu
 		fprintf(stderr,"my_shell : Child process creation not successful\n");
 
 	}else{				// Parent process - Wait fot the child-process to finish its execution

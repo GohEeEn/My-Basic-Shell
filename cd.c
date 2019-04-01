@@ -2,7 +2,7 @@
 
 /**
 * @brief Change the current location of shell to given directory path
-* TODO Feature 4
+* Feature 4
 */
 int change_dir(char **args){
 
