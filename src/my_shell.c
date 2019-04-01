@@ -24,7 +24,7 @@ void shell_loop(void){
  	int num_args = 0;
 
 	startCommand();
-	line = read_line();				// Read Command Line 	: SUCCESS
+	line = read_line();							// Read Command Line 	: SUCCESS
 	
 	while(line != NULL){	
 		
