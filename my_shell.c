@@ -9,13 +9,6 @@
 #include "features.h"
 #include "string_operations.h"
 
-// ----- Function Declaration -----
-
-void shell_loop(void);
-void startCommand(void);
-
-// ----- End of Function Declaration -----
-
 /**
 * @brief Read command given from stdin and execute it repeatedly
 */
@@ -31,11 +24,11 @@ void shell_loop(void){
  	int num_args = 0;
 
 	startCommand();
-	line = read_line();							// Read Command Line 	: SUCCESS
+	line = read_line();				// Read Command Line 	: SUCCESS
 	
 	while(line != NULL){	
 		
-		args = string_split(line,&num_args);	// Split String 		: SUCCESS
+		args = string_split(line,&num_args);	// Split String 	: SUCCESS
 		redirect_stdout(&num_args,args);
 		
 		printf("\n");
@@ -44,7 +37,7 @@ void shell_loop(void){
 		free(args);
 		
 		startCommand();
-		line = read_line();						// Read Command Line 	: SUCCESS
+		line = read_line();			// Read Command Line 	: SUCCESS
 	}
 }
 

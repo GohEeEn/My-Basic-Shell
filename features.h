@@ -7,6 +7,8 @@
 #include <sys/stat.h>
 #include <sys/wait.h>
 
+void shell_loop(void);
+void startCommand(void);
 int change_dir(char **args);
 int catchSIGINT(void);
 int current_time();

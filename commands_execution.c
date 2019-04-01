@@ -25,6 +25,7 @@ int num_commands_available(){
 *	@brief  The method to exit this program / shell
 */
 int shell_exit(char** argv){
+	puts("");
 	exit(0);
 }
 
