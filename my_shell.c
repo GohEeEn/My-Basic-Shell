@@ -11,7 +11,10 @@
 #include <stdbool.h>
 #include <string.h>
 #include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <sys/wait.h>
+#include <fcntl.h>
 #include "features.h"
 #include "built-in.h"
 
@@ -227,10 +230,8 @@ int shell_lauch(char **argv){
 		perror("my_shell ");
 
 	}else{				// Parent process - Wait fot the child-process to finish its execution
-		printf("Parent process waiting\n");
 		wait(&child_status);
 	}
-	printf("Parent process exiting\n");
 	
 	return 1;
 }
@@ -279,37 +280,47 @@ void shell_loop(void){
 
 	do{
 
-		printf("# "); // Indicated as the start of new command line in my_shell
+		printf("# "); 				// Indicated as the start of new command line in my_shell
 
-		line = read_line();		// Read Command Line 	: SUCCESS
+		line = read_line();			// Read Command Line 	: SUCCESS
 		args = shell_split(line,&num_args);	// Split String 	: SUCCESS
-		// printf("size of args : %d\n",num_args)
 		
 		// Checking if a redirection command given
 		for(int i = 0; i < num_args ; i++){
 
 			if(redirection_bool){ 		// Next string argument after redirection symbol found
 				file_name = args[i]; 	// File Name expected for remaining args
-				printf("Given file name : %s\n",file_name);		
+				printf("Given file name : %s\n",file_name);
+				args[i-1] = NULL;	
 				break;
 			}
-			if(strcmp(args[i],">") == 0)
-				redirection_bool = 1;
-			else
-				redirection_bool = 0;			
-		}
-	
-		child_status = shell_execution(args);
-
-		if(child_status && redirection_bool){
-			
-			FILE *fileptr;
-			
-			if((fileptr = fopen(file_name,"w"))==0){ 
-				fprintf(stderr,"Given file %s can't be open or not found\n",file_name);
+			if(strcmp(args[i],">") != 0){
+				redirection_bool = 0;
 			}else{
-
+				redirection_bool = 1;			
 			}
+		}
+
+		int file_desc;
+
+		if(redirection_bool){
+			
+			file_desc = open(file_name, O_WRONLY | O_CREAT | O_TRUNC); // Return a new file descriptor
+			
+			if(file_desc == -1) { // open() returns -1 upon failure
+				// fprintf(stderr,"Given file %s can't be open or not found\n",file_name);
+				perror("my_shell : "); // Print program detail - success or fail
+			}else{
+				printf("File opened or created\n");
+				chmod(file_name,)
+				dup2(file_desc,1);
+			}
+		}
+		child_status = shell_execution(args);
+		if(redirection_bool){
+			close(file_desc);
+			printf("File closed\n");
+			redirection_bool = 0;
 		}
 
 		// Free up the memory of string array after the command execution
