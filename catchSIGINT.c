@@ -7,8 +7,13 @@
 static void signalHandler(int signalNum) {
 	
 	if(signalNum == SIGINT){
-		// printf("Signal %d - Interactive attention signal caught.\n",signalNum); DEBUG
-		printf("\n# "); 	// Continue as a symbol to accept the next command
+	
+		// Continue as a symbol to accept the next command
+		char **args = NULL;
+		puts("");
+		current_time(args);
+		printf("# ");
+
 		fflush(stdout);
 	}else{
 		printf("Maybe some other signal you have incidentally caught...");
@@ -20,7 +25,7 @@ static void signalHandler(int signalNum) {
 */
 int catchSIGINT(void){
 	
-	fflush(stdout); // Try commenting out fflush : Nothing changed ?
+	fflush(stdout); // Function to clear the output buffer
 	
 	/*
 		C function to handle signal
@@ -43,7 +48,7 @@ int catchSIGINT(void){
     printf("Exiting.\n");
 	*/
 	
-    return 0;
+    return 1;
 }
 
 // Functionality testing method 

@@ -13,81 +13,43 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <sys/wait.h>
 #include <fcntl.h>
 #include "features.h"
 
-/*
-	Basic Shell :
-	1. Print a prompt (# character) before any commands 
-	2. Read in a line from stdin -> getline() function suggested [trim trailing '\n']
-	3. A command follwoed by SPACE separated arguments
-	4. Execute the command with the given arguments
-	5. Wait until command completes
-	6. Print the prompt again and accept more commmands
-	7. Exit when EOF is received (Ctrl + D) - Terminate condition 1
-
-	Conditions :
-	> Use system() for initial testing, then replace with feature 1
-	> Add error checks
-		- Exit if your shell does something it should not - Terminate condition 2
-		- Print error and stay alive if the user make an error (eg. command not found)
-	> Submit at least 2 .c source files and 1 header file (.h source files)	
-*/
-
 // ----- Function Declaration -----
+
 int num_commands_available(void);
 void shell_loop(void);
 char** shell_split(char *command_line, int *num_strings);
-int shell_exit(char **argv);
+void startCommand(void);
 char* read_line(void);
-int shell_lauch(char **argv);
-int shell_execution(char **args);
+
 // ----- End of Function Declaration -----
-
-
-/**
- * Commands available in the current shell
- */
-char *commands_available[] = {
-	
-	"cd", 	// change directory
-	"time", // display the date and local time with the format : [dd/mm hh:mm]# 
-	"exit"	// exit this shell
-};
-
-int (*command_function[])(char **) = {
-	&change_dir,
-	&current_time,	// Feature 2
-	&shell_exit
-};
-
-/**
- * Number of commands availabe in this basic shell
- */
-int num_commands_available(){
-	return sizeof(commands_available)/sizeof(char *);
-}
 
 /**
  * Method to read a line of command input from stdin
  */
 char* read_line(void){
 
-	size_t size = 100;
+	size_t size = 512;
 	char *line = malloc(sizeof(char) * size);
 	size_t char_length = 0;
 	int line_read_successfully = 1;
 
 	if(!line){
-		perror("my_shell : ");
+		printf("Error 1");
+		perror("my_shell ");
 		exit(EXIT_FAILURE);
 	}
 
 	do{
-		catchSIGINT();  // Feature 3 : enable catch SIGINT
-
 		char_length = getline(&line,&size,stdin); // Read the stdin in command line
+		
+		// Case for Ctrl + D : EOF == Exit Program
+		if(feof(stdin)){
+			puts("\n");
+			exit(0);	
+		}
 
 		// It means the buffer has insufficient memory space to store the input
 		if(char_length >= size){
@@ -97,7 +59,8 @@ char* read_line(void){
 			line = realloc(line, size) ; // Enlarge the buffer
 
 			if(!line){
-				perror("my_shell : ");
+				printf("Error 2");
+				perror("my_shell ");
 				exit(EXIT_FAILURE);
 			}
 
@@ -112,20 +75,11 @@ char* read_line(void){
 }
 
 /**
- * @brief Function to calculate the character length of the given, including any whitespace character (eg. '\n')
- */
-int string_length (char *string){
-	int length ;	
-	for(length = 0; string[length] != '\0'; ++length);
-	return length;
-}
-
-/**
  * @brief Function to remove the new line character from the string fetched from stdin
  */
 void remove_new_line(char *string){
 	
-	int command_length = string_length(string);
+	int command_length = strlen(string);
  
 	if(string[command_length - 1] == '\n'){
 		string[command_length - 1] = '\0';
@@ -142,15 +96,13 @@ void remove_new_line(char *string){
  */
 char** shell_split(char *command_line, int *num_strings){
 	
-	int bufsize = 64; 					// The size of the string buffer
+	int bufsize = 512; 					// The size of the string buffer
 	int position = 0;
 	char **splits = malloc(bufsize * sizeof(char*));	// The string array that will be returned
 	char *token;			// The temporary memory space to store the separated string
-//	char *string;
 	char **splits_backup ;		// The temporary memory space to store the uncompleted string array, when out of space in 'splits' variable
 
 	const char separator[2] = " ";	// Whitespace character, which is the separation token
-// 	int i = 0;
 
 	if(!splits){	// Failure in creating an empty space in a memory region
 		printf("Enter 3 : Unsuccessful \n");
@@ -160,7 +112,7 @@ char** shell_split(char *command_line, int *num_strings){
 	
 	// Get the first token 
 	remove_new_line(command_line);
-	token = strtok(command_line, " \n");
+	token = strtok(command_line, " ");
 
 	// Read and do the word-separating process until no string remain
 	while(token != NULL){
@@ -176,89 +128,22 @@ char** shell_split(char *command_line, int *num_strings){
 			splits = realloc(splits, bufsize * sizeof(char*));	// Enlarge the size of the 2D array
 
 			if(!splits){	// Failure in creating a larger empty space in a memory region
-					free(splits_backup);
-					perror("my_shell : ");
-					exit(EXIT_FAILURE);
+				free(splits_backup);
+				perror("my_shell : ");
+				exit(EXIT_FAILURE);
 			}
 		}
 		token = strtok(NULL, separator); // Get the next token from undone spliting of previous string
 	}
 
-	splits[position] = '\0'; //TODO
-	*num_strings = position;	
+	splits[position] = '\0';
+	*num_strings = position;
 	
 	return splits;
 }
 
 /**
-*	@brief  The method to exit this program / shell
-*	@return Always 0 in order to terminate the program execution
-*/
-int shell_exit(char** argv){
-	return 0;
-}
-
-/**
-*	@brief			Lauch a program and wait for it to terminate
-*	@param	argv	Null-terminated list of arguments from the program
-*	@return 		1, in order to continue the execution
-*	TODO Feature 1
-*/
-int shell_lauch(char **argv){
-
-	pid_t pid;
-	int child_status;
-
-	pid = fork(); // create a child process
-
-	if(pid == 0){ 		// Child process - Execute the given command 
-		
-		/*
-			Execute the command in the given program file name
-			args[0] - File name of file which has the content to be executed
-			argv 	- Argument list available to the new program provided with its file name 
-		*/
-		if(execvp(argv[0], argv) == -1){   // Case if the file not found
-			perror("my_shell ");
-		}
-		exit(0);
-		
-	}else if(pid < 0){ 	// Case if the creation of child process was unsuccessful
-		perror("my_shell ");
-
-	}else{				// Parent process - Wait fot the child-process to finish its execution
-		wait(&child_status);
-	}
-	
-	return 1;
-}
-
-/**
-*	@brief		Execute the program or shell built-in, according to the command given
-*	@param args	Null terminated list of arguments
-*	@return		1 if the shell should continue running, else 0 if it should terminate
-*/
-int shell_execution(char **args){
-
-	// Case 1 : Empty command was given in terminal
-	if(args[0] == NULL) 
-		return 1;
-
-	// 
-	for(size_t i = 0 ; i < num_commands_available(); i++){
-		
-		// If the given command is found in the commands available in this shell
-		if(strcmp(args[0],commands_available[i]) == 0){
-			// printf("%s selected\n",commands_available[i]); 	// Function selected DEBUG
-			return (*command_function[i])(args); 			// Call self-defined function
-		}
-	}
-	
-	return shell_lauch(args); // Else call built-in command / program
-}
-
-/**
-*	@brief Read command given from stdin and execute it repeatedly
+* @brief Read command given from stdin and execute it repeatedly
 */
 void shell_loop(void){
 
@@ -268,35 +153,42 @@ void shell_loop(void){
 	// String array to store the splitted command input on stdin by white space-character
 	char **args;
 
-	int num_args = 0;
-	char *file_name;
-		
+ 	int num_args = 0;
 
 	// The status of child process which is executing the current commmand
-	int child_status = false;
+	int file_descriptor = false;
 
-	do{
-
-		printf("# "); 				// Indicated as the start of new command line in my_shell
-
-		line = read_line();			// Read Command Line 	: SUCCESS
+	startCommand();
+	line = read_line();			// Read Command Line 	: SUCCESS
+	
+	while(line != NULL){	
+		
 		args = shell_split(line,&num_args);	// Split String 	: SUCCESS
-		redirect_stdout(&num_args,args);
-
+		redirect_stdout(&num_args,args,&file_descriptor);				
+		
+		printf("\n");
 		// Free up the memory of string array after the command execution
 		free(line);
 		free(args);
+		
+		startCommand();
+		line = read_line();			// Read Command Line 	: SUCCESS
+	}
+}
 
-	}while(child_status);
+/**
+* @brief Method to illustrate the start of commands in shell
+*/
+void startCommand(void){
+	
+	catchSIGINT();  	// Feature 3 : enable catch SIGINT		
+	current_time();		// Feature 2 : Print the current time
+	printf("# "); 		// Indicated as the start of new command line in my_shell
 }
 
 int main(int argc, char **argv){
 
-	// A. Intialize : Read and execute its config files, if any
-
-	// B. Interpret : Read commands from stdin and executes them (in loop)
 	shell_loop();
 
-	// C. Terminate : Perform any shutdown/cleanup commands, free up any memory and terminates, after the commands executed
 	return EXIT_SUCCESS;
 }
